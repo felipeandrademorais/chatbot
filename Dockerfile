@@ -13,4 +13,5 @@ WORKDIR /app
 # Placeholder: nothing to build yet.
 # The real multi-stage build (gateway, orchestrator, worker, web)
 # will be introduced in Stage 02.
+USER node
 CMD ["node", "--version"]
