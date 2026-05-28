@@ -9,7 +9,7 @@ The system is engineered to be implemented primarily by AI agents in Cursor, wit
 
 - Runtime: `TypeScript` on `Node.js 22 LTS`.
 - Deployment model: **containers only** via `Docker` + `docker-compose`.
-- API contract model: OpenAPI-first (`openapi.yaml`) + JSON Schema for internal event payloads.
+- LLM provider model: Ollama Local First.
 - Orchestration model: centralized orchestrator + specialized workers + contract-driven handoff.
 - Database: `PostgreSQL 16`.
 - Queue + cache: `Redis 7` + `BullMQ`.
@@ -586,7 +586,7 @@ This preserves the ability to evolve or replace the orchestration engine in the 
 | Cache          | Redis                     |
 | Database       | PostgreSQL                |
 | Vector Search  | pgvector (only if needed) |
-| LLM Provider   | OpenAI or Anthropic       |
+| LLM Provider   | Ollama first, OpenAI or Anthropic       |
 | Infrastructure | Docker Compose            |
 | Logging        | Pino                      |
 

@@ -48,7 +48,7 @@ Provide full-system visibility with logs, metrics, traces, dashboards, and actio
 - Architecture gate blocks services missing instrumentation hooks.
 
 ## Acceptance Criteria
-- `AC-07-001`: dashboard covers API, queue, agent and provider health.
+- `AC-07-001`: dashboard covers API, queue, agent, and Ollama runtime health.
 - `AC-07-002`: trace spans visible for critical transaction path.
 - `AC-07-003`: P1/P2 alert policies tested end-to-end.
 

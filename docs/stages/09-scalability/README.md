@@ -15,7 +15,7 @@ Validate and optimize throughput, latency, and resilience under projected produc
 ## Non-Functional Requirements
 - `NFR-09-001`: sustain target TPS with < 2% error rate.
 - `NFR-09-002`: p95 workflow completion within business-defined SLA.
-- `NFR-09-003`: graceful degradation under provider failures.
+- `NFR-09-003`: graceful degradation under Ollama local runtime failures.
 
 ## Expected Inputs and Outputs
 - Inputs: complete functional system from stages 01-08.
@@ -26,7 +26,7 @@ Validate and optimize throughput, latency, and resilience under projected produc
 - Unblocks: stage 10.
 
 ## Integration Contracts Between Modules
-- Rate-limit and retry contracts across gateway/orchestrator/worker.
+- Rate-limit and retry contracts across gateway/orchestrator/worker/Ollama adapter.
 - Cache invalidation contract per domain aggregate type.
 
 ## Implementation Strategy
