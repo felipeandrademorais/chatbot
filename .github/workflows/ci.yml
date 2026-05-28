@@ -221,6 +221,9 @@ jobs:
 
           echo "Report generated:"
           cat sonar-report.md
+          
+          echo "Writing to Job Summary..."
+          cat sonar-report.md >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Sonar Report Artifact
         if: failure()
