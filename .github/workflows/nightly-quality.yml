@@ -1,0 +1,78 @@
+name: Nightly Quality
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "9"
+
+jobs:
+  mutation-and-regression:
+    name: Mutation + regression + performance checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run mutation tests
+        run: pnpm run --if-present test:mutation
+
+      - name: Run full regression suite
+        run: pnpm run --if-present test:regression
+
+      - name: Run performance baseline suite
+        run: pnpm run --if-present test:performance
+
+      - name: Upload nightly artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-quality-${{ github.run_id }}
+          path: |
+            reports/**
+            coverage/**
+            .stryker-tmp/**
+          if-no-files-found: ignore
+
+  contract-drift:
+    name: Contract drift detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate contract consistency
+        run: |
+          pnpm run --if-present test:contract
+          pnpm run --if-present contract:compat
