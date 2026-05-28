@@ -82,18 +82,18 @@ The system is engineered to be implemented primarily by AI agents in Cursor, wit
 
 ## 3) Milestone Roadmap (Incremental and Parallel)
 
-| Milestone | Stage | Goal | Parallel Tracks |
-| --- | --- | --- | --- |
-| M1 | Foundation | standards, contracts, base skeleton | docs + tooling + contracts |
-| M2 | Infrastructure | compose stack and runtime bootstrap | gateway infra + worker infra + db infra |
-| M3 | Core Domain | deterministic domain model | aggregates + use cases + repositories |
-| M4 | APIs | stable external/internal APIs | REST + async events + validation |
-| M5 | Integrations | external provider adapters | LLM adapters + web tools + storage adapters |
-| M6 | Frontend | user-facing workflow | web shell + session view + task tracking |
-| M7 | Observability | production visibility | metrics + traces + dashboards + alerts |
-| M8 | Security | policy hardening | authN/authZ + secrets + SAST/DAST |
-| M9 | Scalability | throughput and resilience | load/perf + queue tuning + cache strategy |
-| M10 | Final Hardening | release readiness | regression + chaos + DR drills |
+| Milestone | Stage           | Goal                                | Parallel Tracks                             |
+| --------- | --------------- | ----------------------------------- | ------------------------------------------- |
+| M1        | Foundation      | standards, contracts, base skeleton | docs + tooling + contracts                  |
+| M2        | Infrastructure  | compose stack and runtime bootstrap | gateway infra + worker infra + db infra     |
+| M3        | Core Domain     | deterministic domain model          | aggregates + use cases + repositories       |
+| M4        | APIs            | stable external/internal APIs       | REST + async events + validation            |
+| M5        | Integrations    | external provider adapters          | LLM adapters + web tools + storage adapters |
+| M6        | Frontend        | user-facing workflow                | web shell + session view + task tracking    |
+| M7        | Observability   | production visibility               | metrics + traces + dashboards + alerts      |
+| M8        | Security        | policy hardening                    | authN/authZ + secrets + SAST/DAST           |
+| M9        | Scalability     | throughput and resilience           | load/perf + queue tuning + cache strategy   |
+| M10       | Final Hardening | release readiness                   | regression + chaos + DR drills              |
 
 ---
 
@@ -260,10 +260,10 @@ The system is engineered to be implemented primarily by AI agents in Cursor, wit
 ### Context recovery
 
 - Recovery starts from:
-  1) latest green commit
-  2) stage README
-  3) unresolved ambiguity records
-  4) failing pipeline artifact links
+  1. latest green commit
+  2. stage README
+  3. unresolved ambiguity records
+  4. failing pipeline artifact links
 
 ---
 
@@ -386,17 +386,18 @@ Each stage has a dedicated README in:
 - `docs/stages/10-final-hardening/README.md`
 
 These files are intentionally prescriptive and optimized for autonomous AI-agent execution.
+
 # Lean Multi-Agent Architecture Blueprint
 
 ## Overview
 
 This document defines a lean and pragmatic architecture for a distributed multi-agent platform focused on:
 
-* Fast delivery
-* Low operational complexity
-* Incremental evolution
-* Clear separation of responsibilities
-* Future extensibility without premature overengineering
+- Fast delivery
+- Low operational complexity
+- Incremental evolution
+- Clear separation of responsibilities
+- Future extensibility without premature overengineering
 
 The system is designed to start simple while preserving the ability to evolve into a more distributed architecture when real scaling requirements emerge.
 
@@ -416,10 +417,10 @@ Avoid introducing infrastructure, abstractions, or distributed systems complexit
 
 The architecture must evolve based on:
 
-* Real usage
-* Measured bottlenecks
-* Operational pain
-* Product requirements
+- Real usage
+- Measured bottlenecks
+- Operational pain
+- Product requirements
 
 Not assumptions.
 
@@ -433,10 +434,10 @@ Persistent state belongs to external storage systems.
 
 Benefits:
 
-* Easier scaling
-* Simpler recovery
-* Better fault tolerance
-* Cleaner execution model
+- Easier scaling
+- Simpler recovery
+- Better fault tolerance
+- Cleaner execution model
 
 ---
 
@@ -444,15 +445,15 @@ Benefits:
 
 Channels must:
 
-* Receive messages
-* Normalize payloads
-* Return responses
+- Receive messages
+- Normalize payloads
+- Return responses
 
 Channels must not:
 
-* Execute AI logic
-* Manage workflows
-* Store orchestration state
+- Execute AI logic
+- Manage workflows
+- Store orchestration state
 
 ---
 
@@ -462,11 +463,11 @@ Channels must not:
 
 Build a working multi-agent system capable of:
 
-* Receiving messages
-* Routing tasks
-* Executing specialized agents
-* Calling tools
-* Returning responses
+- Receiving messages
+- Routing tasks
+- Executing specialized agents
+- Calling tools
+- Returning responses
 
 Without unnecessary distributed infrastructure.
 
@@ -514,21 +515,21 @@ LangGraph will be used as the workflow and agent execution orchestration layer.
 
 Its role is to provide:
 
-* Stateful workflow execution
-* Agent coordination
-* Execution graphs
-* Sequential and future parallel workflows
-* Retry-friendly execution flows
-* Explicit reasoning paths
+- Stateful workflow execution
+- Agent coordination
+- Execution graphs
+- Sequential and future parallel workflows
+- Retry-friendly execution flows
+- Explicit reasoning paths
 
 ## Why LangGraph
 
 LangGraph provides a strong balance between:
 
-* Flexibility
-* Control
-* Multi-agent workflow orchestration
-* Maintainable execution graphs
+- Flexibility
+- Control
+- Multi-agent workflow orchestration
+- Maintainable execution graphs
 
 Without requiring the operational complexity of heavier distributed workflow platforms during Phase 1.
 
@@ -536,21 +537,21 @@ Without requiring the operational complexity of heavier distributed workflow pla
 
 Use LangGraph as:
 
-* Internal orchestration runtime
-* Workflow state manager
-* Agent execution graph engine
+- Internal orchestration runtime
+- Workflow state manager
+- Agent execution graph engine
 
 Do not delegate the entire system architecture to LangGraph.
 
 The platform architecture should still own:
 
-* Gateway
-* Queueing
-* Persistence
-* Security
-* Tool execution
-* Infrastructure
-* Governance
+- Gateway
+- Queueing
+- Persistence
+- Security
+- Tool execution
+- Infrastructure
+- Governance
 
 ## Recommended Design
 
@@ -578,17 +579,17 @@ This preserves the ability to evolve or replace the orchestration engine in the 
 
 # Recommended Initial Stack
 
-| Layer          | Technology                |
-| -------------- | ------------------------- |
-| Language       | TypeScript                |
-| Framework      | Fastify                   |
-| Queue          | BullMQ                    |
-| Cache          | Redis                     |
-| Database       | PostgreSQL                |
-| Vector Search  | pgvector (only if needed) |
-| LLM Provider   | Ollama first, OpenAI or Anthropic       |
-| Infrastructure | Docker Compose            |
-| Logging        | Pino                      |
+| Layer          | Technology                        |
+| -------------- | --------------------------------- |
+| Language       | TypeScript                        |
+| Framework      | Fastify                           |
+| Queue          | BullMQ                            |
+| Cache          | Redis                             |
+| Database       | PostgreSQL                        |
+| Vector Search  | pgvector (only if needed)         |
+| LLM Provider   | Ollama first, OpenAI or Anthropic |
+| Infrastructure | Docker Compose                    |
+| Logging        | Pino                              |
 
 ---
 
@@ -598,17 +599,17 @@ This preserves the ability to evolve or replace the orchestration engine in the 
 
 ## Responsibilities
 
-* Receive messages
-* Handle authentication
-* Normalize requests
-* Stream responses back to users
+- Receive messages
+- Handle authentication
+- Normalize requests
+- Stream responses back to users
 
 ## Examples
 
-* CLI
-* Telegram Bot
-* WebSocket Gateway
-* Web Application
+- CLI
+- Telegram Bot
+- WebSocket Gateway
+- Web Application
 
 ## Important Rule
 
@@ -620,11 +621,11 @@ No AI or orchestration logic belongs here.
 
 ## Responsibilities
 
-* Receive normalized requests
-* Validate payloads
-* Create request IDs
-* Push jobs into the queue
-* Return responses
+- Receive normalized requests
+- Validate payloads
+- Create request IDs
+- Push jobs into the queue
+- Return responses
 
 ## Design Goal
 
@@ -638,10 +639,10 @@ It should coordinate requests, not execute business logic.
 
 ## Responsibilities
 
-* Background execution
-* Task scheduling
-* Retry handling
-* Concurrency control
+- Background execution
+- Task scheduling
+- Retry handling
+- Concurrency control
 
 ## Recommended Technology
 
@@ -657,9 +658,9 @@ Rules-based routing must include a fallback strategy.
 
 If no rule matches:
 
-* Route to a generic assistant agent
+- Route to a generic assistant agent
   OR
-* Return a structured unsupported-task response
+- Return a structured unsupported-task response
 
 Example:
 
@@ -689,16 +690,16 @@ Response
 
 In LangGraph:
 
-* Each Agent becomes a node
-* AgentResult becomes the next node input
-* The workflow state is persisted internally by LangGraph
+- Each Agent becomes a node
+- AgentResult becomes the next node input
+- The workflow state is persisted internally by LangGraph
 
 The Orchestrator owns:
 
-* Workflow creation
-* Node sequencing
-* Failure handling
-* Final response aggregation
+- Workflow creation
+- Node sequencing
+- Failure handling
+- Final response aggregation
 
 ---
 
@@ -708,10 +709,10 @@ The Orchestrator owns:
 
 The Orchestrator is responsible for:
 
-* Determining which agent should execute a task
-* Managing execution flow
-* Handling failures
-* Coordinating sequential workflows
+- Determining which agent should execute a task
+- Managing execution flow
+- Handling failures
+- Coordinating sequential workflows
 
 ## Phase 1 Recommendation
 
@@ -723,7 +724,7 @@ Example:
 const routing = {
   code_generation: 'coding-agent',
   documentation: 'docs-agent',
-  summarization: 'summary-agent'
+  summarization: 'summary-agent',
 }
 ```
 
@@ -737,18 +738,18 @@ Avoid LLM-based orchestration initially.
 
 Agents are specialized workers responsible for:
 
-* Executing tasks
-* Calling tools
-* Interacting with the LLM
-* Producing outputs
+- Executing tasks
+- Calling tools
+- Interacting with the LLM
+- Producing outputs
 
 ## Phase 1 Recommendation
 
 Start with a fixed set of agents:
 
-* Coding Agent
-* Research Agent
-* Summary Agent
+- Coding Agent
+- Research Agent
+- Summary Agent
 
 Avoid dynamic spawning initially.
 
@@ -854,10 +855,10 @@ interface Tool {
 
 ## Example Tools
 
-* File Reader
-* Git Operations
-* Web Search
-* Shell Execution
+- File Reader
+- Git Operations
+- Web Search
+- Shell Execution
 
 ---
 
@@ -867,10 +868,10 @@ interface Tool {
 
 Use PostgreSQL for:
 
-* Conversations
-* Session history
-* Workflow records
-* Agent execution logs
+- Conversations
+- Session history
+- Workflow records
+- Agent execution logs
 
 ---
 
@@ -878,9 +879,9 @@ Use PostgreSQL for:
 
 Use Redis for:
 
-* Temporary context
-* Queue state
-* Active workflow cache
+- Temporary context
+- Queue state
+- Active workflow cache
 
 ---
 
@@ -888,8 +889,8 @@ Use Redis for:
 
 Only introduce semantic memory when:
 
-* Similarity search becomes necessary
-* Context retrieval becomes a bottleneck
+- Similarity search becomes necessary
+- Context retrieval becomes a bottleneck
 
 Do not introduce a dedicated vector database initially.
 
@@ -923,9 +924,9 @@ Never pass raw user input directly into shell commands or filesystem operations.
 
 Any tool capable of:
 
-* Shell execution
-* File writing
-* System access
+- Shell execution
+- File writing
+- System access
 
 Must run in an isolated process or sandbox.
 
@@ -953,8 +954,8 @@ Transient failures should use bounded retries with exponential backoff.
 
 Example:
 
-* maxRetries: 2
-* exponentialBackoff: true
+- maxRetries: 2
+- exponentialBackoff: true
 
 ---
 
@@ -970,18 +971,18 @@ This prevents cascading worker starvation when providers are degraded.
 
 Every AgentResult should persist:
 
-* input tokens
-* output tokens
-* estimated USD cost
-* provider used
-* model used
+- input tokens
+- output tokens
+- estimated USD cost
+- provider used
+- model used
 
 This enables:
 
-* workflow cost visibility
-* budgeting
-* optimization analysis
-* operational monitoring
+- workflow cost visibility
+- budgeting
+- optimization analysis
+- operational monitoring
 
 ---
 
@@ -1050,10 +1051,10 @@ Use structured logs only.
 
 Example stack:
 
-* Pino
-* Request IDs
-* Workflow IDs
-* Agent execution logs
+- Pino
+- Request IDs
+- Workflow IDs
+- Agent execution logs
 
 Avoid introducing distributed tracing initially.
 
@@ -1170,10 +1171,10 @@ Client
 
 This preserves:
 
-* Workflow durability
-* Realtime streaming
-* Loose coupling
-* Simpler operational boundaries
+- Workflow durability
+- Realtime streaming
+- Loose coupling
+- Simpler operational boundaries
 
 Streaming should only be introduced once realtime UX becomes a validated product requirement.
 
@@ -1183,20 +1184,20 @@ Streaming should only be introduced once realtime UX becomes a validated product
 
 The initial architecture should prioritize:
 
-* Simplicity
-* Fast iteration
-* Clear ownership
-* Operational stability
-* Low infrastructure complexity
+- Simplicity
+- Fast iteration
+- Clear ownership
+- Operational stability
+- Low infrastructure complexity
 
 The goal of Phase 1 is not to build the final distributed AI platform.
 
 The goal is to validate:
 
-* Agent orchestration
-* Workflow quality
-* Tool execution patterns
-* User experience
-* System reliability
+- Agent orchestration
+- Workflow quality
+- Tool execution patterns
+- User experience
+- System reliability
 
 Once those are validated, the architecture can evolve incrementally into a more distributed and scalable platform.

@@ -1,0 +1,41 @@
+{
+  "name": "@chatbot/contracts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./agent": {
+      "import": "./dist/agent.js",
+      "types": "./dist/agent.d.ts"
+    },
+    "./tool": {
+      "import": "./dist/tool.js",
+      "types": "./dist/tool.d.ts"
+    },
+    "./workflow": {
+      "import": "./dist/workflow.js",
+      "types": "./dist/workflow.d.ts"
+    },
+    "./message": {
+      "import": "./dist/message.js",
+      "types": "./dist/message.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run --passWithNoTests",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.1",
+    "@types/node": "^22.15.21"
+  }
+}
