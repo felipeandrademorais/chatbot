@@ -199,10 +199,35 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: SonarQube Quality Gate check
+        id: sonarqube-quality-gate-check
         uses: SonarSource/sonarqube-quality-gate-action@d304d050d930b02a896b0f85935344f023928496 # v1.1.0
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Generate Sonar Failure Report
+        if: failure()
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          PROJECT_KEY: felipeandrademorais_chatbot
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          echo "Fetching Quality Gate details from SonarCloud API..."
+          response=$(curl -s -u "$SONAR_TOKEN": "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&branch=$BRANCH")
+          
+          echo "## SonarCloud Quality Gate Failure Details" > sonar-report.md
+          echo "The following metrics failed the quality gate:" >> sonar-report.md
+          echo "$response" | jq -r '.projectStatus.conditions[] | select(.status=="ERROR") | "- **\(.metricKey)**: Actual value \(.actualValue) (Threshold: \(.errorThreshold))"' >> sonar-report.md
+          
+          echo "Report generated:"
+          cat sonar-report.md
+
+      - name: Upload Sonar Report Artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonar-failure-report
+          path: sonar-report.md
 
   build:
     name: Build immutable docker image
