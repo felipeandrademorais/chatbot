@@ -3,11 +3,11 @@ name: Release
 on:
   push:
     tags:
-      - "v*.*.*"
+      - 'v*.*.*'
   workflow_dispatch:
     inputs:
       rollback_to_sha:
-        description: "Optional image SHA for rollback (without prefix)"
+        description: 'Optional image SHA for rollback (without prefix)'
         required: false
         type: string
 

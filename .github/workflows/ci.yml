@@ -2,17 +2,17 @@ name: CI
 
 on:
   pull_request:
-    branches: ["main", "develop"]
+    branches: ['main', 'develop']
   push:
-    branches: ["develop"]
+    branches: ['develop']
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "22"
-  PNPM_VERSION: "9"
+  NODE_VERSION: '22'
+  PNPM_VERSION: '9'
 
 jobs:
   validate:
@@ -179,7 +179,7 @@ jobs:
         with:
           image-ref: chatbot:ci
           format: table
-          exit-code: "1"
+          exit-code: '1'
           vuln-type: os,library
           severity: CRITICAL,HIGH
 

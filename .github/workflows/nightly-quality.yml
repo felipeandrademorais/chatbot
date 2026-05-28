@@ -2,12 +2,12 @@ name: Nightly Quality
 
 on:
   schedule:
-    - cron: "0 4 * * *"
+    - cron: '0 4 * * *'
   workflow_dispatch:
 
 env:
-  NODE_VERSION: "22"
-  PNPM_VERSION: "9"
+  NODE_VERSION: '22'
+  PNPM_VERSION: '9'
 
 jobs:
   mutation-and-regression:
