@@ -1,0 +1,233 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Chatbot Workflow API",
+    "version": "1.0.0",
+    "description": "Workflow-facing subset of packages/contracts/openapi/v1.0.0.openapi.json. Keep in sync with createWorkflow, getWorkflow, and retryWorkflow operations."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "paths": {
+    "/api/v1/workflows": {
+      "post": {
+        "operationId": "createWorkflow",
+        "summary": "Create a workflow execution",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkflowRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Workflow accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/WorkflowClientErrorResponse"
+          },
+          "500": {
+            "$ref": "#/components/responses/WorkflowClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/api/v1/workflows/{workflowId}": {
+      "get": {
+        "operationId": "getWorkflow",
+        "summary": "Get workflow details",
+        "parameters": [
+          {
+            "name": "workflowId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/WorkflowClientErrorResponse"
+          },
+          "500": {
+            "$ref": "#/components/responses/WorkflowClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/api/v1/workflows/{workflowId}/retry": {
+      "post": {
+        "operationId": "retryWorkflow",
+        "summary": "Retry a failed workflow",
+        "parameters": [
+          {
+            "name": "workflowId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Workflow retry accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/WorkflowClientErrorResponse"
+          },
+          "409": {
+            "$ref": "#/components/responses/WorkflowClientErrorResponse"
+          },
+          "500": {
+            "$ref": "#/components/responses/WorkflowClientErrorResponse"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "WorkflowClientErrorResponse": {
+        "description": "Web workflow client error shape",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/WorkflowClientError"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "WorkflowStatus": {
+        "type": "string",
+        "enum": ["pending", "running", "completed", "failed", "cancelled"]
+      },
+      "WorkflowTimelineEntry": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["status", "timestamp"],
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/WorkflowStatus"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "CreateWorkflowRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["taskType"],
+        "properties": {
+          "taskType": {
+            "type": "string",
+            "minLength": 1
+          },
+          "payload": {
+            "description": "Opaque task payload sent to orchestrator",
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "WorkflowDetails": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["workflowId", "status", "createdAt", "updatedAt", "timeline"],
+        "properties": {
+          "workflowId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "$ref": "#/components/schemas/WorkflowStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowTimelineEntry"
+            },
+            "minItems": 1
+          },
+          "result": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "WorkflowClientError": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["error", "message", "requestId"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "minLength": 1
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requestId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "retryable": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

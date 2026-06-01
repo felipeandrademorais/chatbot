@@ -77,7 +77,10 @@ Provide full-system visibility with logs, metrics, traces, dashboards, and actio
 
 ```text
 docs/stages/07-observability/
-└── README.md
+├── README.md
+├── dashboards.md
+├── alerts.md
+└── runbook.md
 ```
 
 ## Final Validation Checklist

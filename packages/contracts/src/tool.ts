@@ -35,6 +35,29 @@ export interface ToolExecutionResult {
   readonly durationMs: number
 }
 
+export type StructuredToolInputValue =
+  | string
+  | number
+  | boolean
+  | null
+  | readonly StructuredToolInputValue[]
+  | StructuredToolInput
+
+export interface StructuredToolInput {
+  readonly [key: string]: StructuredToolInputValue
+}
+
+export interface ToolInvocationRequest {
+  readonly requestId: string
+  readonly toolName: ToolName
+  readonly input: StructuredToolInput
+}
+
+export interface ToolInvocationResponse {
+  readonly requestId: string
+  readonly result: ToolExecutionResult
+}
+
 /**
  * Interface that all tools must implement.
  *
@@ -45,4 +68,50 @@ export interface Tool {
   readonly name: ToolName
 
   execute(input: unknown): Promise<unknown>
+}
+
+export function validateToolInvocationRequest(value: unknown): value is ToolInvocationRequest {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  const requestId = value.requestId
+  const toolName = value.toolName
+  const input = value.input
+
+  return (
+    typeof requestId === 'string' &&
+    requestId.trim().length > 0 &&
+    typeof toolName === 'string' &&
+    toolName.trim().length > 0 &&
+    isStructuredToolInput(input)
+  )
+}
+
+function isStructuredToolInputValue(value: unknown): value is StructuredToolInputValue {
+  if (value === null) {
+    return true
+  }
+
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return true
+  }
+
+  if (Array.isArray(value)) {
+    return value.every((item) => isStructuredToolInputValue(item))
+  }
+
+  return isStructuredToolInput(value)
+}
+
+function isStructuredToolInput(value: unknown): value is StructuredToolInput {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  return Object.values(value).every((item) => isStructuredToolInputValue(item))
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
 }

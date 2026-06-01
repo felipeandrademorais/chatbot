@@ -71,6 +71,21 @@ Implement integrations with an **Ollama Local First** strategy, keeping provider
 - Provider adapters replaceable without API/domain code change.
 - Integration docs include rate-limit and failure behavior.
 
+## Integration Behavior Reference
+
+### Rate-limit behavior
+
+- Retryable provider failures (`429`, transient unavailable) use max `2` retries with exponential backoff.
+- Requests that still fail after retries are normalized into deterministic provider errors and surfaced to orchestrator/worker.
+- Rate-limit errors are telemetry-tagged with `errorCode=rate_limited` for observability correlation.
+
+### Failure behavior
+
+- Provider timeout default is `30s` (`NFR-05-001`).
+- Circuit breaker opens after repeated failures and rejects new requests during cooldown to prevent cascading failures.
+- Fallback model routing is mandatory when primary approved model fails and fallback is configured.
+- All failures persist usage telemetry with error metadata (tokens/cost/errors contract fields).
+
 ## Risks and Attention Points
 
 - `RISK-05-001`: local runtime coupling. Mitigation: strict adapter interfaces + provider abstraction.

@@ -68,6 +68,10 @@ Harden the platform through defense-in-depth controls across code, runtime, supp
 - Security baseline document and exception process published.
 - Incident response and credential rotation procedures tested.
 
+### Stage Artifacts
+
+- Security runbook: `docs/stages/08-security/runbook.md`
+
 ## Risks and Attention Points
 
 - `RISK-08-001`: permissive defaults. Mitigation: deny-by-default policies.

@@ -7,6 +7,6 @@ describe('Shared Package', () => {
   })
 
   it('should have a valid semver-like version', () => {
-    expect(SHARED_VERSION).toMatch(/^\d+\.\d+\.\d+$/)
+    expect(SHARED_VERSION).toMatch(/^0\.\d+\.\d+$/)
   })
 })

@@ -33,14 +33,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Validate formatting
-        run: pnpm run --if-present format:check
-
-      - name: Lint
-        run: pnpm run --if-present lint
-
-      - name: Typecheck
-        run: pnpm run --if-present typecheck
+      - name: Minimum quality gates (static)
+        run: pnpm run quality:gate
+        env:
+          QUALITY_GATE_SKIP_STAGE_TESTS: '1'
+          QUALITY_GATE_SKIP_CONTRACT: '1'
+          QUALITY_GATE_SKIP_SECURITY: '1'
+          QUALITY_GATE_SKIP_BREAKING: '1'
+          QUALITY_GATE_SKIP_CONTRACT_FREEZE: '1'
+          QUALITY_GATE_SKIP_SMOKE: '1'
 
   unit:
     name: Unit tests + coverage
@@ -62,7 +63,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Run unit tests
+      - name: Stage tests (unit) + coverage
         run: pnpm run --if-present test:unit -- --coverage
 
       - name: Upload coverage artifacts
@@ -95,27 +96,38 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Build and start stack
-        run: docker compose -f docker-compose.yml up -d --build
-
-      - name: Wait for health
+      - name: Prepare environment
         run: |
-          for i in {1..30}; do
-            if docker compose ps; then
-              sleep 5
-            fi
-          done
+          cp .env.example .env
+          sed -i 's/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=ci-test-password/' .env
+
+      - name: Build and start stack (test profile)
+        run: docker compose --profile test up -d --build --wait
+
+      - name: Verify migrations completed
+        run: docker compose logs migrate
+
+      - name: Build contracts for tests
+        run: pnpm --filter @chatbot/contracts run build
 
       - name: Run integration tests
-        run: pnpm run --if-present test:integration
+        env:
+          GATEWAY_URL: http://localhost:3000
+          ORCHESTRATOR_URL: http://localhost:3001
+        run: pnpm run test:integration
+
+      - name: Run smoke tests
+        env:
+          GATEWAY_URL: http://localhost:3000
+        run: pnpm run test:smoke
 
       - name: Dump compose logs on failure
         if: failure()
-        run: docker compose logs --no-color
+        run: docker compose --profile test logs --no-color
 
       - name: Teardown stack
         if: always()
-        run: docker compose down -v
+        run: docker compose --profile test down -v
 
   contract:
     name: Contract checks (OpenAPI + JSON Schema)
@@ -137,11 +149,28 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Validate contracts
+      - name: OpenAPI lint
+        run: pnpm run openapi:lint
+
+      - name: Contract-first import boundaries
+        run: bash scripts/check-contract-first.sh
+
+      - name: Lint core contracts (no explicit any)
+        run: pnpm exec eslint packages/contracts/src --max-warnings 0
+
+      - name: Contract tests (start.md §6)
         run: pnpm run --if-present test:contract
 
-      - name: Check API compatibility
+      - name: Contract compatibility (breaking changes)
         run: pnpm run --if-present contract:compat
+
+      - name: Upload OpenAPI artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: openapi-contracts
+          path: packages/contracts/openapi/*.openapi.json
+          if-no-files-found: error
 
   security:
     name: Security (secrets, deps, image scan)
@@ -168,6 +197,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: SAST scan (Semgrep)
+        uses: returntocorp/semgrep-action@f9d7322f22365f03701757b9cb77c69ce5de2f6d # v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+
       - name: Dependency audit
         run: pnpm audit --audit-level high
 
@@ -182,6 +218,48 @@ jobs:
           exit-code: '1'
           vuln-type: os,library
           severity: CRITICAL,HIGH
+
+  dast:
+    name: DAST smoke (authz critical path)
+    runs-on: ubuntu-latest
+    needs: integration
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          sed -i 's/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=ci-test-password/' .env
+          sed -i 's/^JWT_SECRET=.*/JWT_SECRET=stage08-ci-signing-secret-at-least-32-chars/' .env
+
+      - name: Start stack for DAST smoke
+        run: docker compose --profile test up -d --build --wait
+
+      - name: Build contracts for tests
+        run: pnpm --filter @chatbot/contracts run build
+
+      - name: Run DAST authz smoke tests
+        env:
+          GATEWAY_URL: http://localhost:3000
+          JWT_SECRET: stage08-ci-signing-secret-at-least-32-chars
+        run: pnpm run test:security
+
+      - name: Teardown stack
+        if: always()
+        run: docker compose --profile test down -v
 
   quality:
     name: Sonar quality gate
@@ -235,7 +313,7 @@ jobs:
   build:
     name: Build immutable docker image
     runs-on: ubuntu-latest
-    needs: [integration, contract, security]
+    needs: [integration, contract, security, dast]
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -283,5 +361,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          sed -i 's/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=ci-test-password/' .env
+
+      - name: Start stack for smoke tests
+        run: docker compose --profile test up -d --wait
+
+      - name: Build contracts for tests
+        run: pnpm --filter @chatbot/contracts run build
+
       - name: Run smoke tests
-        run: pnpm run --if-present test:smoke
+        env:
+          GATEWAY_URL: http://localhost:3000
+        run: pnpm run test:smoke
+
+      - name: Teardown stack
+        if: always()
+        run: docker compose --profile test down -v

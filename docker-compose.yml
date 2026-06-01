@@ -1,10 +1,40 @@
+x-app-environment: &app-environment
+  NODE_ENV: ${NODE_ENV:-development}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: 5432
+  POSTGRES_USER: ${POSTGRES_USER:-chatbot}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+  POSTGRES_DB: ${POSTGRES_DB:-chatbot}
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-1000}
+  RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-120}
+  RATE_LIMIT_BURST_ALLOWANCE: ${RATE_LIMIT_BURST_ALLOWANCE:-30}
+  RETRY_TIMEOUT_MS: ${RETRY_TIMEOUT_MS:-60000}
+  RETRY_MAX_RETRIES: ${RETRY_MAX_RETRIES:-2}
+  RETRY_BACKOFF_MULTIPLIER: ${RETRY_BACKOFF_MULTIPLIER:-2}
+  RETRY_MAX_BACKOFF_MS: ${RETRY_MAX_BACKOFF_MS:-8000}
+  WORKER_TARGET_TPS: ${WORKER_TARGET_TPS:-40}
+  WORKER_AVERAGE_JOB_LATENCY_MS: ${WORKER_AVERAGE_JOB_LATENCY_MS:-150}
+  WORKER_MAX_CONCURRENCY: ${WORKER_MAX_CONCURRENCY:-32}
+  QUEUE_PARTITION_KEYS: ${QUEUE_PARTITION_KEYS:-workflowId,taskType}
+  QUEUE_MAX_IN_FLIGHT_PER_PARTITION: ${QUEUE_MAX_IN_FLIGHT_PER_PARTITION:-8}
+  CACHE_DEFAULT_TTL_MS: ${CACHE_DEFAULT_TTL_MS:-30000}
+  CACHE_STALE_REVALIDATE_MS: ${CACHE_STALE_REVALIDATE_MS:-5000}
+  OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+  OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:e2b}
+  OLLAMA_APPROVED_MODELS: ${OLLAMA_APPROVED_MODELS:-gemma4:e2b,gemma4:e4b}
+  OLLAMA_FALLBACK_MODEL: ${OLLAMA_FALLBACK_MODEL:-gemma4:e4b}
+  JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+
 services:
   postgres:
     image: postgres:16-alpine
     container_name: chatbot-postgres
     restart: unless-stopped
     ports:
-      - '${POSTGRES_PORT:-5432}:5432'
+      - '${POSTGRES_PUBLISH_PORT:-5433}:5432'
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-chatbot}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -13,10 +43,10 @@ services:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-chatbot} -d ${POSTGRES_DB:-chatbot}']
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 10s
     networks:
       - chatbot-net
 
@@ -25,70 +55,166 @@ services:
     container_name: chatbot-redis
     restart: unless-stopped
     ports:
-      - '${REDIS_PORT:-6379}:6379'
+      - '${REDIS_PUBLISH_PORT:-6380}:6379'
     volumes:
       - redis-data:/data
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 5
-      start_period: 10s
+      retries: 10
+      start_period: 5s
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     networks:
       - chatbot-net
 
-  # --- Placeholder Application Services ---
-  # These will be fully configured in Stage 02 (Infrastructure).
-  # Uncomment and configure when Dockerfiles are available.
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.migrate
+    container_name: chatbot-migrate
+    profiles: [dev, test]
+    restart: 'no'
+    environment:
+      <<: *app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - chatbot-net
 
-  # gateway:
-  #   build:
-  #     context: ./apps/gateway
-  #     dockerfile: Dockerfile
-  #   container_name: chatbot-gateway
-  #   restart: unless-stopped
-  #   ports:
-  #     - '${GATEWAY_PORT:-3000}:3000'
-  #   environment:
-  #     NODE_ENV: ${NODE_ENV:-development}
-  #     POSTGRES_HOST: postgres
-  #     POSTGRES_PORT: 5432
-  #     POSTGRES_USER: ${POSTGRES_USER:-chatbot}
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  #     POSTGRES_DB: ${POSTGRES_DB:-chatbot}
-  #     REDIS_HOST: redis
-  #     REDIS_PORT: 6379
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   networks:
-  #     - chatbot-net
+  orchestrator:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app
+      args:
+        APP_NAME: orchestrator
+        APP_PACKAGE: '@chatbot/orchestrator'
+        APP_PORT: 3001
+    container_name: chatbot-orchestrator
+    restart: unless-stopped
+    profiles: [dev, test]
+    ports:
+      - '${ORCHESTRATOR_PORT:-3001}:3001'
+    environment:
+      <<: *app-environment
+      ORCHESTRATOR_PORT: 3001
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3001/health/ready || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+    networks:
+      - chatbot-net
 
-  # worker:
-  #   build:
-  #     context: ./apps/worker
-  #     dockerfile: Dockerfile
-  #   container_name: chatbot-worker
-  #   restart: unless-stopped
-  #   environment:
-  #     NODE_ENV: ${NODE_ENV:-development}
-  #     POSTGRES_HOST: postgres
-  #     POSTGRES_PORT: 5432
-  #     POSTGRES_USER: ${POSTGRES_USER:-chatbot}
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  #     POSTGRES_DB: ${POSTGRES_DB:-chatbot}
-  #     REDIS_HOST: redis
-  #     REDIS_PORT: 6379
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   networks:
-  #     - chatbot-net
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app
+      args:
+        APP_NAME: gateway
+        APP_PACKAGE: '@chatbot/gateway'
+        APP_PORT: 3000
+    container_name: chatbot-gateway
+    restart: unless-stopped
+    profiles: [dev, test]
+    ports:
+      - '${GATEWAY_PORT:-3000}:3000'
+    environment:
+      <<: *app-environment
+      GATEWAY_PORT: 3000
+      ORCHESTRATOR_URL: http://orchestrator:3001
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      orchestrator:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/health/ready || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    networks:
+      - chatbot-net
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app
+      args:
+        APP_NAME: worker
+        APP_PACKAGE: '@chatbot/worker'
+        APP_PORT: 3002
+    container_name: chatbot-worker
+    restart: unless-stopped
+    profiles: [dev]
+    ports:
+      - '${WORKER_PORT:-3002}:3002'
+    environment:
+      <<: *app-environment
+      WORKER_PORT: 3002
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3002/health/ready || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+    networks:
+      - chatbot-net
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app
+      args:
+        APP_NAME: web
+        APP_PACKAGE: '@chatbot/web'
+        APP_PORT: 3003
+    container_name: chatbot-web
+    restart: unless-stopped
+    profiles: [dev]
+    ports:
+      - '${WEB_PORT:-3003}:3003'
+    environment:
+      <<: *app-environment
+      WEB_PORT: 3003
+      # In-network gateway URL (host .env localhost is for pnpm dev only).
+      WORKFLOW_API_BASE_URL: http://gateway:3000
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3003/health/ready || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+    networks:
+      - chatbot-net
 
 volumes:
   postgres-data:

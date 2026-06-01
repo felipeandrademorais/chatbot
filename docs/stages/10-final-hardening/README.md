@@ -1,5 +1,7 @@
 # Stage 10 - Final Hardening
 
+Version: `v1.0.0`
+
 ## Objective
 
 Perform release hardening with exhaustive validation, resilience drills, and production readiness checks.
@@ -35,6 +37,7 @@ Perform release hardening with exhaustive validation, resilience drills, and pro
 
 - Freeze contract versions for release candidate.
 - Any post-freeze contract change requires explicit exception approval.
+- Enforce with `pnpm run contract:freeze` and `pnpm run contract:compat`.
 
 ## Implementation Strategy
 
@@ -56,6 +59,14 @@ Perform release hardening with exhaustive validation, resilience drills, and pro
 - CI requires full quality profile (including nightly-grade checks).
 - Security and license compliance reports attached to release.
 - Release workflow blocks deploy if any mandatory check fails.
+
+## Stage Artifacts
+
+- Contract freeze manifest: `docs/stages/10-final-hardening/contract-freeze.json`
+- Operations checklist: `docs/stages/10-final-hardening/operations-checklist.md`
+- Rollback playbook: `docs/stages/10-final-hardening/rollback-playbook.md`
+- Release notes template: `docs/stages/10-final-hardening/release-notes.md`
+- Go/no-go approval record: `docs/stages/10-final-hardening/go-no-go.md`
 
 ## Acceptance Criteria
 

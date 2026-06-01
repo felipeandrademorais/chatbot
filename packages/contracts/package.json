@@ -25,12 +25,25 @@
     "./message": {
       "import": "./dist/message.js",
       "types": "./dist/message.d.ts"
+    },
+    "./telemetry": {
+      "import": "./dist/telemetry.js",
+      "types": "./dist/telemetry.d.ts"
+    },
+    "./provider": {
+      "import": "./dist/provider.js",
+      "types": "./dist/provider.d.ts"
+    },
+    "./security": {
+      "import": "./dist/security.js",
+      "types": "./dist/security.d.ts"
     }
   },
   "scripts": {
     "build": "tsc --build",
     "typecheck": "tsc --noEmit",
-    "test:unit": "vitest run --passWithNoTests",
+    "test:unit": "vitest run",
+    "test:contract": "vitest run __tests__/*.contract.test.ts",
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "devDependencies": {

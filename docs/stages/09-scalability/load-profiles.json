@@ -1,0 +1,29 @@
+[
+  {
+    "id": "normal",
+    "description": "Baseline sustained profile under expected weekday traffic.",
+    "targetTps": 20,
+    "durationSeconds": 60,
+    "maxErrorRate": 0.02,
+    "maxP95LatencyMs": 600,
+    "injectDependencyFailure": false
+  },
+  {
+    "id": "peak",
+    "description": "Traffic spike profile with elevated queue pressure.",
+    "targetTps": 40,
+    "durationSeconds": 60,
+    "maxErrorRate": 0.02,
+    "maxP95LatencyMs": 800,
+    "injectDependencyFailure": false
+  },
+  {
+    "id": "failure",
+    "description": "Controlled provider failure profile validating graceful degradation.",
+    "targetTps": 15,
+    "durationSeconds": 45,
+    "maxErrorRate": 0.02,
+    "maxP95LatencyMs": 900,
+    "injectDependencyFailure": true
+  }
+]

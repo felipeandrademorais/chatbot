@@ -136,7 +136,7 @@ Every delivery must pass (block if any fail):
 ## Coding Conventions
 
 - **Language**: TypeScript (strict mode)
-- **Runtime**: Node.js 22 LTS
+- **Runtime**: Node.js 24 LTS
 - **Package manager**: pnpm 9
 - **Framework**: Fastify (gateway)
 - **Queue**: BullMQ + Redis

@@ -1,0 +1,20 @@
+[
+  {
+    "scenario": "normal",
+    "requests": 1200,
+    "elapsedMs": 60000,
+    "p95LatencyMs": 260
+  },
+  {
+    "scenario": "peak",
+    "requests": 2400,
+    "elapsedMs": 60000,
+    "p95LatencyMs": 420
+  },
+  {
+    "scenario": "failure",
+    "requests": 675,
+    "elapsedMs": 45000,
+    "p95LatencyMs": 520
+  }
+]

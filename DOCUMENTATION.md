@@ -7,7 +7,7 @@ The system is engineered to be implemented primarily by AI agents in Cursor, wit
 
 ### Non-negotiable architecture decisions
 
-- Runtime: `TypeScript` on `Node.js 22 LTS`.
+- Runtime: `TypeScript` on `Node.js 24 LTS`.
 - Deployment model: **containers only** via `Docker` + `docker-compose`.
 - LLM provider model: Ollama Local First.
 - Orchestration model: centralized orchestrator + specialized workers + contract-driven handoff.

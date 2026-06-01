@@ -35,16 +35,29 @@ export default tseslint.config(
     },
   },
   {
+    files: ['packages/contracts/src/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unsafe-argument': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'error',
+      '@typescript-eslint/no-unsafe-call': 'error',
+      '@typescript-eslint/no-unsafe-member-access': 'error',
+      '@typescript-eslint/no-unsafe-return': 'error',
+    },
+  },
+  {
     ignores: [
       'node_modules/**',
-      'dist/**',
+      '**/dist/**',
       'coverage/**',
       '**/*.js',
       '**/*.mjs',
       '**/*.cjs',
+      '**/vitest.config.ts',
       '**/__tests__/**',
       '**/*.test.ts',
       '**/*.spec.ts',
+      'apps/web/src/api/generated/**',
     ],
   },
 )

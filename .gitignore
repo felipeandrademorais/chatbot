@@ -5,6 +5,7 @@ node_modules/
 dist/
 build/
 *.tsbuildinfo
+.pnpm-store/
 
 # Coverage
 coverage/
@@ -41,3 +42,5 @@ __snapshots__/
 # Temporary
 tmp/
 temp/
+
+.omc/

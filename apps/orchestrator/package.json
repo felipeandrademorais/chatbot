@@ -1,10 +1,12 @@
 {
   "name": "@chatbot/orchestrator",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "./dist/main.js",
   "scripts": {
     "build": "tsc --build",
+    "start": "node dist/main.js",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run --passWithNoTests",
     "clean": "rm -rf dist *.tsbuildinfo"
@@ -14,8 +16,8 @@
     "@chatbot/shared": "workspace:*"
   },
   "devDependencies": {
+    "@types/node": "^22.15.21",
     "typescript": "^5.8.3",
-    "vitest": "^3.2.1",
-    "@types/node": "^22.15.21"
+    "vitest": "^3.2.1"
   }
 }

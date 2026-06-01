@@ -19,6 +19,8 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  NODE_VERSION: '24'
+  RELEASE_DRY_RUN: ${{ vars.RELEASE_DRY_RUN || '1' }}
 
 jobs:
   release:
@@ -28,6 +30,53 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Enforce contract freeze
+        run: pnpm run contract:freeze
+
+      - name: Contract compatibility scan
+        run: pnpm run contract:compat
+
+      - name: Full regression matrix
+        env:
+          REGRESSION_SKIP_INTEGRATION: '0'
+          REGRESSION_SKIP_E2E: '0'
+          REGRESSION_SKIP_SMOKE: '0'
+        run: pnpm run test:regression
+
+      - name: Rollback rehearsal (RTO check)
+        env:
+          DRY_RUN: '1'
+          ROLLBACK_TARGET_SHA: ${{ github.sha }}
+        run: pnpm run test:rollback
+
+      - name: Generate security compliance report
+        run: bash scripts/generate-security-report.sh
+
+      - name: Generate license compliance report
+        run: bash scripts/generate-license-report.sh
+
+      - name: Upload release compliance artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-compliance-${{ github.run_id }}
+          path: |
+            reports/security-audit.json
+            reports/license-report.json
+            reports/license-report.txt
+          if-no-files-found: ignore
 
       - name: Login to GHCR
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
@@ -54,12 +103,18 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Deploy to staging
+        env:
+          DRY_RUN: ${{ env.RELEASE_DRY_RUN }}
         run: ./scripts/deploy-staging.sh "${{ github.ref_name }}"
 
       - name: Staging smoke tests
+        env:
+          DRY_RUN: ${{ env.RELEASE_DRY_RUN }}
         run: ./scripts/smoke-staging.sh
 
       - name: Critical e2e tests
+        env:
+          DRY_RUN: ${{ env.RELEASE_DRY_RUN }}
         run: ./scripts/e2e-critical.sh
 
   production:
@@ -73,9 +128,13 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Deploy to production
+        env:
+          DRY_RUN: ${{ env.RELEASE_DRY_RUN }}
         run: ./scripts/deploy-production.sh "${{ github.ref_name }}"
 
       - name: Post-deploy smoke
+        env:
+          DRY_RUN: ${{ env.RELEASE_DRY_RUN }}
         run: ./scripts/smoke-production.sh
 
   rollback:
@@ -89,4 +148,6 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Roll back production
+        env:
+          DRY_RUN: ${{ env.RELEASE_DRY_RUN }}
         run: ./scripts/rollback-production.sh "sha-${{ github.event.inputs.rollback_to_sha }}"

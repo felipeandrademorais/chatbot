@@ -82,7 +82,7 @@ docs/stages/02-infrastructure/
 
 ## Final Validation Checklist
 
-- [ ] Compose profiles validated.
-- [ ] Migration forward path verified.
-- [ ] Readiness probes working.
-- [ ] Infra CI jobs green.
+- [x] Compose profiles validated.
+- [x] Migration forward path verified.
+- [x] Readiness probes working.
+- [x] Infra CI jobs green.

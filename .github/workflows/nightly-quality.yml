@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: '24'
   PNPM_VERSION: '9'
 
 jobs:
@@ -35,7 +35,7 @@ jobs:
         run: pnpm run --if-present test:mutation
 
       - name: Run full regression suite
-        run: pnpm run --if-present test:regression
+        run: pnpm run test:regression
 
       - name: Run performance baseline suite
         run: pnpm run --if-present test:performance
@@ -76,3 +76,33 @@ jobs:
         run: |
           pnpm run --if-present test:contract
           pnpm run --if-present contract:compat
+
+  resilience-drills:
+    name: Chaos and rollback drills
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Run chaos drills
+        run: pnpm run test:chaos
+
+      - name: Run rollback rehearsal
+        env:
+          DRY_RUN: '1'
+          ROLLBACK_TARGET_SHA: sha-placeholder
+        run: pnpm run test:rollback

@@ -1,20 +1,27 @@
 {
   "name": "@chatbot/web",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "./dist/main.js",
   "scripts": {
-    "build": "tsc --build",
+    "generate:client": "openapi-typescript ../../packages/contracts/openapi/v1.0.0.openapi.json -o ./src/api/generated/openapi-types.ts",
+    "build": "pnpm run generate:client && tsc --build",
+    "start": "node dist/main.js",
     "typecheck": "tsc --noEmit",
-    "test:unit": "vitest run --passWithNoTests",
+    "test:unit": "vitest run src --passWithNoTests",
+    "test:e2e": "vitest run ../../tests/e2e",
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@chatbot/contracts": "workspace:*"
+    "@chatbot/contracts": "workspace:*",
+    "@chatbot/shared": "workspace:*",
+    "@fastify/formbody": "^8.0.2"
   },
   "devDependencies": {
+    "@types/node": "^22.15.21",
+    "openapi-typescript": "^7.10.1",
     "typescript": "^5.8.3",
-    "vitest": "^3.2.1",
-    "@types/node": "^22.15.21"
+    "vitest": "^3.2.1"
   }
 }

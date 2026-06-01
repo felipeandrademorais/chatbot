@@ -1,0 +1,7 @@
+{
+  "stage": "10-final-hardening",
+  "contractsPackage": "@chatbot/contracts",
+  "frozenVersion": "1.0.0",
+  "frozenAt": "2026-06-01T00:00:00Z",
+  "policy": "Post-freeze contract changes require CONTRACT_CHANGE_EXCEPTION_APPROVED=1 and CONTRACT_CHANGE_EXCEPTION_ID."
+}

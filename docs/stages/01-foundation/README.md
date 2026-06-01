@@ -1,5 +1,7 @@
 # Stage 01 - Foundation
 
+**Version:** `v1.0.0`
+
 ## Objective
 
 Establish the spec-driven baseline, repository standards, contracts skeleton, and Docker-first local runtime so all later stages execute deterministically.
